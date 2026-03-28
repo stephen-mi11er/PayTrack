@@ -28,7 +28,25 @@ class EmployeeHandler{
         return EmployeeHandler.decimalToNumber(employeeArray[0]);
     }
 
-    public static async VerifyUserCredentials(email: string, password: string): Promise<Employee | undefined> {
+    private static tokenize(query: string): string[] {
+        return query
+            // Replace string literals with STRING placeholder
+            .replace(/'[^']*'/g, " STRING ")
+            // Replace numeric literals with NUMBER placeholder
+            .replace(/\b\d+\b/g, " NUMBER ")
+            // Add spaces around SQL keywords and operators for easier tokenization
+            .replace(/(=|--|;|\(|\)|,)/g, " $1 ")
+            // Split by whitespace and 
+            .split(/\s+/)
+            // Remove empty tokens
+            .filter(Boolean);
+    }
+
+    private static isValid(tokenizedQuery: string[], expected: string[]): boolean {
+        return tokenizedQuery.join(" ") === expected.join(" ");
+    }
+
+    public static async VerifyUserCredentials(email: string, password: string): Promise<Employee | null> {
         // ⚠️ Directly building the SQL string from untrusted inputs can lead to SQL injection
         // Example: if email is "bbender@planetexpress.com" and password is ' OR email='bbender@planetexpress.com'--
         // This would result in a query that logs in the attacker as the admin user
@@ -37,12 +55,24 @@ class EmployeeHandler{
             "WHERE email = '" + email + "' " +
             "AND password = '" + password + "'";
 
+        const expected = [
+            "SELECT", "*", "FROM", "Employees",
+            "WHERE", "email", "=", "STRING",
+            "AND", "password", "=", "STRING"
+        ];
+
+        const tokenizedQuery = EmployeeHandler.tokenize(unsafeQuery);
+        if(!EmployeeHandler.isValid(tokenizedQuery, expected)) {
+            console.error("⚠️ SQL Injection vulnerability detected!");
+            return null;
+        }        
+
         // ⚠️ Using $queryRawUnsafe allows SQL injection
         const employeeArray: any[] = await prisma.$queryRawUnsafe(unsafeQuery);
         
 
         if (!employeeArray || employeeArray.length === 0) {
-            return undefined;
+            return null;
         }
 
         return EmployeeHandler.decimalToNumber(employeeArray[0]);

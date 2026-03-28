@@ -20,7 +20,6 @@ export async function loginUser(formData: FormData) {
       return { success: false, message: "Invalid email or password" };
     }
 
-    // Set session or token logic here (e.g., JWT, cookies, etc.)
     const cookieStore = await cookies();
     cookieStore.set(Utils.USER_SESSION_COOKIE, JSON.stringify(
         {
