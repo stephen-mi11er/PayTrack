@@ -36,7 +36,7 @@ class EmployeeHandler{
             .replace(/\b\d+\b/g, " NUMBER ")
             // Add spaces around SQL keywords and operators for easier tokenization
             .replace(/(=|--|;|\(|\)|,)/g, " $1 ")
-            // Split by whitespace and 
+            // Split by whitespace 
             .split(/\s+/)
             // Remove empty tokens
             .filter(Boolean);
@@ -46,14 +46,10 @@ class EmployeeHandler{
         return tokenizedQuery.join(" ") === expected.join(" ");
     }
 
-    private static isSQLInjection(query: string): boolean {
-        const expected = [
-            "SELECT", "*", "FROM", "Employees",
-            "WHERE", "email", "=", "STRING",
-            "AND", "password", "=", "STRING"
-        ];
+    private static isSQLInjection(expectedQuery: string, unsafeQuery: string): boolean {
+        const expected = EmployeeHandler.tokenize(expectedQuery);
 
-        const tokenizedQuery = EmployeeHandler.tokenize(query);
+        const tokenizedQuery = EmployeeHandler.tokenize(unsafeQuery);
         if(!EmployeeHandler.isValid(tokenizedQuery, expected)) {
             console.error("⚠️ SQL Injection vulnerability detected!");
             return true;
@@ -72,7 +68,8 @@ class EmployeeHandler{
             "AND password = '" + password + "'";       
 
         if(process.env.ENABLE_QUERY_TOKENIZATION === "true") {
-            const isInjection = EmployeeHandler.isSQLInjection(unsafeQuery);
+            const expectedQuery = "SELECT * FROM Employees WHERE email = STRING AND password = STRING";
+            const isInjection = EmployeeHandler.isSQLInjection(expectedQuery, unsafeQuery);
             if(isInjection) {
                 throw new Error("SQL Injection detected in query: " + unsafeQuery);
             }
