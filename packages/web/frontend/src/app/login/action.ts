@@ -1,8 +1,8 @@
 "use server";
 
 import { Utils } from "@/lib/utils";
-import { EmployeeHandler } from "@employee-salary-manager/core";
-import type { User } from "@employee-salary-manager/core";
+import { EmployeeHandler } from "@handlers/employee-handler";
+import type { User } from "@models/user";
 import { cookies } from "next/headers";
 
 export async function loginUser(formData: FormData) {

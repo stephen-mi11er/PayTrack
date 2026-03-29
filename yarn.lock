@@ -49,12 +49,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@employee-salary-manager/core@workspace:packages/core":
-  version: 0.0.0-use.local
-  resolution: "@employee-salary-manager/core@workspace:packages/core"
-  languageName: unknown
-  linkType: soft
-
 "@employee-salary-manager/database@workspace:packages/database":
   version: 0.0.0-use.local
   resolution: "@employee-salary-manager/database@workspace:packages/database"

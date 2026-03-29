@@ -46,6 +46,22 @@ class EmployeeHandler{
         return tokenizedQuery.join(" ") === expected.join(" ");
     }
 
+    private static isSQLInjection(query: string): boolean {
+        const expected = [
+            "SELECT", "*", "FROM", "Employees",
+            "WHERE", "email", "=", "STRING",
+            "AND", "password", "=", "STRING"
+        ];
+
+        const tokenizedQuery = EmployeeHandler.tokenize(query);
+        if(!EmployeeHandler.isValid(tokenizedQuery, expected)) {
+            console.error("⚠️ SQL Injection vulnerability detected!");
+            return true;
+        }  
+
+        return false;
+    }
+
     public static async VerifyUserCredentials(email: string, password: string): Promise<Employee | null> {
         // ⚠️ Directly building the SQL string from untrusted inputs can lead to SQL injection
         // Example: if email is "bbender@planetexpress.com" and password is ' OR email='bbender@planetexpress.com'--
@@ -53,19 +69,14 @@ class EmployeeHandler{
         const unsafeQuery =
             "SELECT * FROM Employees " +
             "WHERE email = '" + email + "' " +
-            "AND password = '" + password + "'";
+            "AND password = '" + password + "'";       
 
-        const expected = [
-            "SELECT", "*", "FROM", "Employees",
-            "WHERE", "email", "=", "STRING",
-            "AND", "password", "=", "STRING"
-        ];
-
-        const tokenizedQuery = EmployeeHandler.tokenize(unsafeQuery);
-        if(!EmployeeHandler.isValid(tokenizedQuery, expected)) {
-            console.error("⚠️ SQL Injection vulnerability detected!");
-            return null;
-        }        
+        if(process.env.ENABLE_QUERY_TOKENIZATION === "true") {
+            const isInjection = EmployeeHandler.isSQLInjection(unsafeQuery);
+            if(isInjection) {
+                throw new Error("SQL Injection detected in query: " + unsafeQuery);
+            }
+        }
 
         // ⚠️ Using $queryRawUnsafe allows SQL injection
         const employeeArray: any[] = await prisma.$queryRawUnsafe(unsafeQuery);
