@@ -41,7 +41,7 @@ class EmployeeHandler{
     private static tokenize(query: string): string[] {
         return query
             // Collapse single-quoted string literals (including backslash-escaped quotes)
-            // into a single STRING token, e.g. 'alice@example.com' → STRING
+            // into a single STRING token, e.g. 'bbender@planetexpress.com' → STRING
             // (?:[^'\\]|\\.)* matches any character except ' or \, or a backslash followed
             // by any character (escape sequence), preventing \' from being treated as a closing quote
             .replace(/'(?:[^'\\]|\\.)*'/g, " STRING ")
@@ -68,10 +68,7 @@ class EmployeeHandler{
     private static isSQLInjection(expectedQuery: string, unsafeQuery: string): boolean {
         const expected = EmployeeHandler.tokenize(expectedQuery);
 
-        const tokenizedQuery = EmployeeHandler.tokenize(unsafeQuery);
-
-        console.log({tokenizedQuery, unsafeQuery, expected});
-        
+        const tokenizedQuery = EmployeeHandler.tokenize(unsafeQuery);        
 
         if(!EmployeeHandler.isValid(tokenizedQuery, expected)) {
             console.error("⚠️ SQL Injection vulnerability detected!");
