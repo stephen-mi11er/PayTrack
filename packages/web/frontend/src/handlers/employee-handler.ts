@@ -29,17 +29,7 @@ class EmployeeHandler{
     }
 
     private static tokenize(query: string): string[] {
-        return query
-            // Replace string literals with STRING placeholder
-            .replace(/'[^']*'/g, " STRING ")
-            // Replace numeric literals with NUMBER placeholder
-            .replace(/\b\d+\b/g, " NUMBER ")
-            // Add spaces around SQL keywords and operators for easier tokenization
-            .replace(/(=|--|;|\(|\)|,)/g, " $1 ")
-            // Split by whitespace 
-            .split(/\s+/)
-            // Remove empty tokens
-            .filter(Boolean);
+        return query.split(/[\s']|(--)/)
     }
 
     private static isValid(tokenizedQuery: string[], expected: string[]): boolean {

@@ -5,6 +5,11 @@ const config = {
     moduleNameMapper: {
         "^@employee-salary-manager/database/prisma$":
             "<rootDir>/src/__tests__/__mocks__/prisma.ts",
+        "^@handlers/(.*)$": "<rootDir>/src/handlers/$1",
+        "^@models/(.*)$": "<rootDir>/src/models/$1",
+        "^@/components/(.*)$": "<rootDir>/src/components/$1",
+        "^@/lib/(.*)$": "<rootDir>/src/lib/$1",
+        "^@src/(.*)$": "<rootDir>/src/$1",
     },
     transform: {
         "^.+\\.tsx?$": [
