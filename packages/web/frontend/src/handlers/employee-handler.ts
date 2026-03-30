@@ -39,7 +39,26 @@ class EmployeeHandler{
      * doi: 10.1109/ICCSIT.2010.5565202
      */
     private static tokenize(query: string): string[] {
-        return query.split(/[\s']|(--)/)
+        return query
+            // Collapse single-quoted string literals (including backslash-escaped quotes)
+            // into a single STRING token, e.g. 'alice@example.com' → STRING
+            // (?:[^'\\]|\\.)* matches any character except ' or \, or a backslash followed
+            // by any character (escape sequence), preventing \' from being treated as a closing quote
+            .replace(/'(?:[^'\\]|\\.)*'/g, " STRING ")
+            // Collapse bare integer literals into a NUMBER token, e.g. 42 → NUMBER
+            // \b ensures only standalone numbers are matched, not digits inside words
+            .replace(/\b\d+\b/g, " NUMBER ")
+            // Pad SQL operators and punctuation with spaces so they split into their own tokens:
+            // =  →  comparison / assignment
+            // -- →  SQL line comment (key injection signal)
+            // ;  →  statement terminator (signals stacked queries)
+            // () →  function call or subquery delimiters
+            // ,  →  column/value separator
+            .replace(/(=|--|;|\(|\)|,)/g, " $1 ")
+            // Split on any run of whitespace to produce the token array
+            .split(/\s+/)
+            // Discard empty strings produced by leading/trailing whitespace
+            .filter(Boolean);
     }
 
     private static isValid(tokenizedQuery: string[], expected: string[]): boolean {
@@ -50,6 +69,10 @@ class EmployeeHandler{
         const expected = EmployeeHandler.tokenize(expectedQuery);
 
         const tokenizedQuery = EmployeeHandler.tokenize(unsafeQuery);
+
+        console.log({tokenizedQuery, unsafeQuery, expected});
+        
+
         if(!EmployeeHandler.isValid(tokenizedQuery, expected)) {
             console.error("⚠️ SQL Injection vulnerability detected!");
             return true;
