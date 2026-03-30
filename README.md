@@ -20,6 +20,7 @@ PayTrack is an open-source platform designed to help developers discover, unders
 * [Modifying Seed Data](#modifying-seed-data)
 * [Exploit Challenges](#exploit-challenges)
    * [SQL Injection in Credential Verification](#sql-injection-in-credential-verification)
+   * [Query Tokenization Detection Bypass](#query-tokenization-detection-bypass)
 * [Contributing](#contributing)
 * [License](#license)
 
@@ -79,6 +80,13 @@ Duplicate the example file and update values:
 cp .env.example .env
 # Edit .env as needed
 ```
+
+Key variables:
+
+| Variable | Description | Default |
+|---|---|---|
+| `DATABASE_URL` | PostgreSQL connection string | see `.env.example` |
+| `ENABLE_QUERY_TOKENIZATION` | Enable SQL query tokenization-based injection detection in `VerifyUserCredentials` | `false` |
 
 ### Start with Docker Compose
 
@@ -179,6 +187,33 @@ const employeeArray = await prisma.$queryRaw`SELECT * FROM Employees WHERE email
 ```
 
 </details>
+
+### Query Tokenization Detection Bypass
+
+The `VerifyUserCredentials` adds optional SQL injection detection logic, when `ENABLE_QUERY_TOKENIZATION=true`, every credential query is tokenized and compared against an expected token sequence before execution. If SQL injection is detected, code execution haulted by throwing an exception which prevents a users from logging into PayTrack. 
+
+**How it works:**
+
+The private `tokenize()` method normalizes a raw SQL string into a canonical sequence of tokens:
+
+1. Collapses single-quoted string literals (including backslash-escaped quotes) into a `STRING` token — e.g. `'bbender@planetexpress.com'` → `STRING`
+2. Collapses bare integer literals into a `NUMBER` token — e.g. `42` → `NUMBER`
+3. Pads SQL operators and punctuation (`=`, `--`, `;`, `(`, `)`, `,`) with spaces so they become discrete tokens
+4. Splits on whitespace to produce the final token array
+
+An expected token template is defined at the call site:
+
+```
+SELECT * FROM Employees WHERE email = STRING AND password = STRING
+```
+
+If the token count of the actual (user-supplied) query differs from the template, the request is blocked and an error is thrown.
+
+**Enabling detection:**
+
+```bash
+ENABLE_QUERY_TOKENIZATION=true
+```
 
 ## Contributing
 

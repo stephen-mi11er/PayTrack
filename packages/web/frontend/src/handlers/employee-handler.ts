@@ -63,9 +63,7 @@ class EmployeeHandler{
 
     private static isSQLInjection(expectedQuery: string, unsafeQuery: string): boolean {
         const expectedQueryTokenized = EmployeeHandler.tokenize(expectedQuery);
-        const unsafeQueryTokenized = EmployeeHandler.tokenize(unsafeQuery);     
-        
-        console.log({expectedQueryTokenized, unsafeQueryTokenized});
+        const unsafeQueryTokenized = EmployeeHandler.tokenize(unsafeQuery); 
 
         if(expectedQueryTokenized.length !== unsafeQueryTokenized.length) {
             console.error("⚠️ SQL Injection vulnerability detected!");
