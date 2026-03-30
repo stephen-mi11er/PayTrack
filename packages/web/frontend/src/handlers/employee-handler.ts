@@ -28,6 +28,16 @@ class EmployeeHandler{
         return EmployeeHandler.decimalToNumber(employeeArray[0]);
     }
 
+
+    /**
+     * Tokenizes a SQL query string by splitting on whitespace, single quotes,
+     * and the comment sequence '--'.
+     *
+     * Based on: L. Ntagwabira and S. L. Kang, "Use of Query tokenization to detect
+     * and prevent SQL injection attacks," in Proc. 2010 3rd Int. Conf. Computer
+     * Science and Information Technology, vol. 2, pp. 438–440.
+     * doi: 10.1109/ICCSIT.2010.5565202
+     */
     private static tokenize(query: string): string[] {
         return query.split(/[\s']|(--)/)
     }
