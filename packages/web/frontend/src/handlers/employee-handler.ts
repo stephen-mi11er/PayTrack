@@ -61,16 +61,13 @@ class EmployeeHandler{
             .filter(Boolean);
     }
 
-    private static isValid(tokenizedQuery: string[], expected: string[]): boolean {
-        return tokenizedQuery.join(" ") === expected.join(" ");
-    }
-
     private static isSQLInjection(expectedQuery: string, unsafeQuery: string): boolean {
-        const expected = EmployeeHandler.tokenize(expectedQuery);
+        const expectedQueryTokenized = EmployeeHandler.tokenize(expectedQuery);
+        const unsafeQueryTokenized = EmployeeHandler.tokenize(unsafeQuery);     
+        
+        console.log({expectedQueryTokenized, unsafeQueryTokenized});
 
-        const tokenizedQuery = EmployeeHandler.tokenize(unsafeQuery);        
-
-        if(!EmployeeHandler.isValid(tokenizedQuery, expected)) {
+        if(expectedQueryTokenized.length !== unsafeQueryTokenized.length) {
             console.error("⚠️ SQL Injection vulnerability detected!");
             return true;
         }  
